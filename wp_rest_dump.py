@@ -23,12 +23,102 @@ from requests.exceptions import HTTPError
 UA = "WP-Dumper/1.0 (+https://jblunddock.com/)"
 
 def html_to_text(html: str) -> str:
+    """Original HTML to text converter - strips all HTML"""
     html = re.sub(r"<(script|style)[\s\S]*?</\1>", "", html, flags=re.I)
     html = re.sub(r"<br\s*/?>", "\n", html, flags=re.I)
     html = re.sub(r"</(p|div|li|h[1-6])>", "\n", html, flags=re.I)
     text = re.sub(r"<[^>]+>", "", html)
     text = re.sub(r"\n{3,}", "\n\n", text)
     return text.strip()
+
+def html_to_text_enhanced(html_str: str) -> str:
+    """Enhanced HTML to text converter that preserves links and important tags"""
+    if not html_str:
+        return ""
+    
+    # Decode HTML entities first
+    import html
+    html_str = html.unescape(html_str)
+    
+    # Remove scripts and styles completely
+    html_str = re.sub(r"<(script|style)[\s\S]*?</\1>", "", html_str, flags=re.I)
+    html_str = re.sub(r"<(noscript)[\s\S]*?</\1>", "", html_str, flags=re.I)
+    
+    # Convert links/buttons to "Button Text | Button URL" format
+    html_str = re.sub(
+        r'<a[^>]*href\s*=\s*["\']([^"\']+)["\'][^>]*>(.*?)</a>',
+        lambda m: f"{re.sub(r'<[^>]+>', '', m.group(2)).strip()} | {m.group(1).strip()}",
+        html_str,
+        flags=re.I | re.DOTALL
+    )
+    
+    # Preserve important heading tags with markers
+    html_str = re.sub(r'<h1[^>]*>(.*?)</h1>', r'[H1] \1', html_str, flags=re.I | re.DOTALL)
+    html_str = re.sub(r'<h2[^>]*>(.*?)</h2>', r'[H2] \1', html_str, flags=re.I | re.DOTALL)
+    html_str = re.sub(r'<h3[^>]*>(.*?)</h3>', r'[H3] \1', html_str, flags=re.I | re.DOTALL)
+    html_str = re.sub(r'<h4[^>]*>(.*?)</h4>', r'[H4] \1', html_str, flags=re.I | re.DOTALL)
+    html_str = re.sub(r'<h5[^>]*>(.*?)</h5>', r'[H5] \1', html_str, flags=re.I | re.DOTALL)
+    html_str = re.sub(r'<h6[^>]*>(.*?)</h6>', r'[H6] \1', html_str, flags=re.I | re.DOTALL)
+    
+    # Convert block elements to line breaks
+    html_str = re.sub(r"<br\s*/?>", "\n", html_str, flags=re.I)
+    html_str = re.sub(r"</(p|div|li|article|section|header|footer|nav|main)>", "\n", html_str, flags=re.I)
+    
+    # Remove remaining HTML tags
+    text = re.sub(r"<[^>]+>", "", html_str)
+    
+    # Clean up whitespace
+    text = re.sub(r"\r?\n[ \t]+", "\n", text)
+    text = re.sub(r"[ \t]+\r?\n", "\n", text) 
+    text = re.sub(r"\n{3,}", "\n\n", text)
+    
+    return text.strip()
+
+def format_directory_content(text: str) -> str:
+    """Format directory-style content (dealer listings, contact info, etc.)"""
+    if not text:
+        return text
+    
+    # Phone number regex
+    phone_pattern = r"(?:\+?1[\s\-.]?)?(?:\(\d{3}\)|\d{3})[\s\-.]?\d{3}[\s\-.]?\d{4}"
+    
+    def normalize_phone(match):
+        """Normalize phone number to XXX-XXX-XXXX format"""
+        digits = re.sub(r"\D", "", match.group(0))
+        if len(digits) == 11 and digits.startswith("1"):
+            digits = digits[1:]
+        if len(digits) == 10:
+            return f"{digits[0:3]}-{digits[3:6]}-{digits[6:10]}"
+        return match.group(0)
+    
+    # Normalize line endings
+    text = text.replace("\r\n", "\n").replace("\r", "\n")
+    
+    # Add line breaks before key elements that might be jammed together
+    text = re.sub(r"(?<!\n)(Website\s*\|)", r"\n\1", text)
+    text = re.sub(rf"(?<!\n)(?=({phone_pattern}))", r"\n", text)
+    
+    # Add line break after ZIP codes (5 digits or 5+4 format)
+    text = re.sub(r"(\b\d{5}(?:-\d{4})?)(?!\n)", r"\1\n", text)
+    
+    # Normalize phone numbers
+    text = re.sub(phone_pattern, normalize_phone, text)
+    
+    # Clean up excessive blank lines while preserving intentional spacing
+    lines = [line.rstrip() for line in text.split("\n")]
+    cleaned_lines = []
+    blank_count = 0
+    
+    for line in lines:
+        if line.strip() == "":
+            blank_count += 1
+            if blank_count <= 1:  # Allow max 1 consecutive blank line
+                cleaned_lines.append("")
+        else:
+            blank_count = 0
+            cleaned_lines.append(line)
+    
+    return "\n".join(cleaned_lines).strip()
 
 def get_json(session: requests.Session, url: str, params=None, timeout=25):
     r = session.get(url, params=params or {}, timeout=timeout)
@@ -98,6 +188,33 @@ def discover_types(session: requests.Session, base: str, include_all=False, verb
 
 def ensure_dir(path: pathlib.Path):
     path.mkdir(parents=True, exist_ok=True)
+
+def save_dual_text_files(html_content: str, title: str, filename: str, base_dir: pathlib.Path) -> tuple[str, str]:
+    """Save both raw and pretty versions of text files"""
+    # Create directory structure
+    raw_dir = base_dir / "raw_pages"
+    pretty_dir = base_dir / "pretty_pages"
+    ensure_dir(raw_dir)
+    ensure_dir(pretty_dir)
+    
+    # Generate both versions
+    raw_text = html_to_text(html_content)
+    pretty_text = html_to_text_enhanced(html_content)
+    formatted_text = format_directory_content(pretty_text)
+    
+    # Add title to both versions
+    if title.strip():
+        raw_text = (title.strip() + "\n\n" + raw_text).strip()
+        formatted_text = (title.strip() + "\n\n" + formatted_text).strip()
+    
+    # Save files
+    raw_path = raw_dir / filename
+    pretty_path = pretty_dir / filename
+    
+    raw_path.write_text(raw_text, encoding="utf-8")
+    pretty_path.write_text(formatted_text, encoding="utf-8")
+    
+    return str(raw_path), str(pretty_path)
 
 def setup_authentication(session: requests.Session, interactive=True, username=None, password=None):
     """Set up authentication credentials for session."""
@@ -177,9 +294,8 @@ def dump_wordpress_content(base_url, output_dir="wp_dump", sleep_time=0.2, all_t
         # Create site-specific output directory
         base_out = pathlib.Path(output_dir)
         site_out = base_out / clean_site_name
-        pages_dir = site_out / "pages"
         images_dir = site_out / "images"
-        ensure_dir(base_out); ensure_dir(site_out); ensure_dir(pages_dir); ensure_dir(images_dir)
+        ensure_dir(base_out); ensure_dir(site_out); ensure_dir(images_dir)
 
         print(f"==> Connected to: {site_name}")
         print(f"==> Saving to: {site_out}")
@@ -215,20 +331,25 @@ def dump_wordpress_content(base_url, output_dir="wp_dump", sleep_time=0.2, all_t
                     slug = item.get("slug") or str(item.get("id"))
                     title = (item.get("title", {}) or {}).get("rendered", "") or ""
                     body_html = (item.get("content", {}) or {}).get("rendered", "") or ""
-                    text = (title.strip() + "\n\n" + html_to_text(body_html)).strip()
-                    # Avoid empty files
-                    if not text.strip():
+                    
+                    # Skip empty content
+                    if not body_html.strip() and not title.strip():
                         continue
+                    
                     # Disambiguate filename with type prefix to avoid slug collisions
                     fname = f"{rest_base}-{slug}.txt"
-                    (pages_dir / fname).write_text(text, encoding="utf-8")
+                    
+                    # Save both raw and pretty versions
+                    raw_path, pretty_path = save_dual_text_files(body_html, title, fname, site_out)
+                    
                     index["items"].append({
                         "type": rest_base,
                         "id": item.get("id"),
                         "slug": slug,
                         "title": re.sub(r"\s+", " ", title).strip(),
                         "link": item.get("link"),
-                        "file": str((pages_dir / fname).as_posix())
+                        "raw_file": raw_path,
+                        "pretty_file": pretty_path
                     })
             except HTTPError as e:
                 if e.response.status_code in (401, 403):
@@ -309,8 +430,11 @@ def dump_wordpress_content(base_url, output_dir="wp_dump", sleep_time=0.2, all_t
         # Write index
         (site_out / "index.json").write_text(json.dumps(index, indent=2), encoding="utf-8")
         print(f"==> Done. See: {site_out.resolve()}")
+        print(f"    Raw text files: {site_out}/raw_pages/")
+        print(f"    Pretty text files: {site_out}/pretty_pages/")
+        print(f"    Media files: {site_out}/images/")
 
-        return True, str(site_out.resolve()), "Content dumped successfully"
+        return True, str(site_out.resolve()), "Content dumped successfully with dual output format"
 
     except Exception as e:
         return False, output_dir, f"Error during content dump: {e}"
