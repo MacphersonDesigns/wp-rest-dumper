@@ -28,7 +28,7 @@
 
 ## 🚀 How to Use
 
-### Start the Web GUI:
+### Start the Web GUI
 
 ```bash
 cd /Users/macphersondesigns/Sites/wp_dumpper
@@ -36,15 +36,15 @@ source .venv/bin/activate
 python3 wp_dumper_web_gui.py
 ```
 
-Then open: http://localhost:8080
+Then open: <http://localhost:8080>
 
-### Using the Browse Button:
+### Using the Browse Button
 
 1. Click the "📁 Browse" button next to Save Location
 2. Choose from common paths or enter a custom one
 3. The selected path will be populated in the input field
 
-### For New Setup (if needed):
+### For New Setup (if needed)
 
 ```bash
 python3 -m venv .venv

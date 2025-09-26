@@ -20,7 +20,7 @@ services:
       retries: 3
       start_period: 40s
     labels:
-      - "traefik.enable=false"  # If you use Traefik
+      - "traefik.enable=false" # If you use Traefik
       - "com.docker.compose.project=wp-rest-dumper"
 
 # Optional: Create a network for isolation

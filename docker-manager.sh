@@ -139,7 +139,7 @@ main() {
             show_menu
             echo -n "Enter your choice (1-9): "
             read -r choice
-            
+
             case $choice in
                 1) start_service ;;
                 2) stop_service ;;
@@ -152,7 +152,7 @@ main() {
                 9) echo "Goodbye!"; exit 0 ;;
                 *) print_error "Invalid option. Please choose 1-9." ;;
             esac
-            
+
             echo -e "\nPress Enter to continue..."
             read -r
         done
