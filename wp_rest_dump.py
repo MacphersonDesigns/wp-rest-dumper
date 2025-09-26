@@ -35,15 +35,15 @@ def html_to_text_enhanced(html_str: str) -> str:
     """Enhanced HTML to text converter that preserves links and important tags"""
     if not html_str:
         return ""
-    
+
     # Decode HTML entities first
     import html
     html_str = html.unescape(html_str)
-    
+
     # Remove scripts and styles completely
     html_str = re.sub(r"<(script|style)[\s\S]*?</\1>", "", html_str, flags=re.I)
     html_str = re.sub(r"<(noscript)[\s\S]*?</\1>", "", html_str, flags=re.I)
-    
+
     # Convert links/buttons to "Button Text | Button URL" format
     html_str = re.sub(
         r'<a[^>]*href\s*=\s*["\']([^"\']+)["\'][^>]*>(.*?)</a>',
@@ -51,7 +51,7 @@ def html_to_text_enhanced(html_str: str) -> str:
         html_str,
         flags=re.I | re.DOTALL
     )
-    
+
     # Preserve important heading tags with markers
     html_str = re.sub(r'<h1[^>]*>(.*?)</h1>', r'[H1] \1', html_str, flags=re.I | re.DOTALL)
     html_str = re.sub(r'<h2[^>]*>(.*?)</h2>', r'[H2] \1', html_str, flags=re.I | re.DOTALL)
@@ -59,29 +59,29 @@ def html_to_text_enhanced(html_str: str) -> str:
     html_str = re.sub(r'<h4[^>]*>(.*?)</h4>', r'[H4] \1', html_str, flags=re.I | re.DOTALL)
     html_str = re.sub(r'<h5[^>]*>(.*?)</h5>', r'[H5] \1', html_str, flags=re.I | re.DOTALL)
     html_str = re.sub(r'<h6[^>]*>(.*?)</h6>', r'[H6] \1', html_str, flags=re.I | re.DOTALL)
-    
+
     # Convert block elements to line breaks
     html_str = re.sub(r"<br\s*/?>", "\n", html_str, flags=re.I)
     html_str = re.sub(r"</(p|div|li|article|section|header|footer|nav|main)>", "\n", html_str, flags=re.I)
-    
+
     # Remove remaining HTML tags
     text = re.sub(r"<[^>]+>", "", html_str)
-    
+
     # Clean up whitespace
     text = re.sub(r"\r?\n[ \t]+", "\n", text)
-    text = re.sub(r"[ \t]+\r?\n", "\n", text) 
+    text = re.sub(r"[ \t]+\r?\n", "\n", text)
     text = re.sub(r"\n{3,}", "\n\n", text)
-    
+
     return text.strip()
 
 def format_directory_content(text: str) -> str:
     """Format directory-style content (dealer listings, contact info, etc.)"""
     if not text:
         return text
-    
+
     # Phone number regex
     phone_pattern = r"(?:\+?1[\s\-.]?)?(?:\(\d{3}\)|\d{3})[\s\-.]?\d{3}[\s\-.]?\d{4}"
-    
+
     def normalize_phone(match):
         """Normalize phone number to XXX-XXX-XXXX format"""
         digits = re.sub(r"\D", "", match.group(0))
@@ -90,25 +90,25 @@ def format_directory_content(text: str) -> str:
         if len(digits) == 10:
             return f"{digits[0:3]}-{digits[3:6]}-{digits[6:10]}"
         return match.group(0)
-    
+
     # Normalize line endings
     text = text.replace("\r\n", "\n").replace("\r", "\n")
-    
+
     # Add line breaks before key elements that might be jammed together
     text = re.sub(r"(?<!\n)(Website\s*\|)", r"\n\1", text)
     text = re.sub(rf"(?<!\n)(?=({phone_pattern}))", r"\n", text)
-    
+
     # Add line break after ZIP codes (5 digits or 5+4 format)
     text = re.sub(r"(\b\d{5}(?:-\d{4})?)(?!\n)", r"\1\n", text)
-    
+
     # Normalize phone numbers
     text = re.sub(phone_pattern, normalize_phone, text)
-    
+
     # Clean up excessive blank lines while preserving intentional spacing
     lines = [line.rstrip() for line in text.split("\n")]
     cleaned_lines = []
     blank_count = 0
-    
+
     for line in lines:
         if line.strip() == "":
             blank_count += 1
@@ -117,7 +117,7 @@ def format_directory_content(text: str) -> str:
         else:
             blank_count = 0
             cleaned_lines.append(line)
-    
+
     return "\n".join(cleaned_lines).strip()
 
 def get_json(session: requests.Session, url: str, params=None, timeout=25):
@@ -196,24 +196,24 @@ def save_dual_text_files(html_content: str, title: str, filename: str, base_dir:
     pretty_dir = base_dir / "pretty_pages"
     ensure_dir(raw_dir)
     ensure_dir(pretty_dir)
-    
+
     # Generate both versions
     raw_text = html_to_text(html_content)
     pretty_text = html_to_text_enhanced(html_content)
     formatted_text = format_directory_content(pretty_text)
-    
+
     # Add title to both versions
     if title.strip():
         raw_text = (title.strip() + "\n\n" + raw_text).strip()
         formatted_text = (title.strip() + "\n\n" + formatted_text).strip()
-    
+
     # Save files
     raw_path = raw_dir / filename
     pretty_path = pretty_dir / filename
-    
+
     raw_path.write_text(raw_text, encoding="utf-8")
     pretty_path.write_text(formatted_text, encoding="utf-8")
-    
+
     return str(raw_path), str(pretty_path)
 
 def setup_authentication(session: requests.Session, interactive=True, username=None, password=None):
@@ -331,17 +331,17 @@ def dump_wordpress_content(base_url, output_dir="wp_dump", sleep_time=0.2, all_t
                     slug = item.get("slug") or str(item.get("id"))
                     title = (item.get("title", {}) or {}).get("rendered", "") or ""
                     body_html = (item.get("content", {}) or {}).get("rendered", "") or ""
-                    
+
                     # Skip empty content
                     if not body_html.strip() and not title.strip():
                         continue
-                    
+
                     # Disambiguate filename with type prefix to avoid slug collisions
                     fname = f"{rest_base}-{slug}.txt"
-                    
+
                     # Save both raw and pretty versions
                     raw_path, pretty_path = save_dual_text_files(body_html, title, fname, site_out)
-                    
+
                     index["items"].append({
                         "type": rest_base,
                         "id": item.get("id"),

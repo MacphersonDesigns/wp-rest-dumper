@@ -5,10 +5,13 @@ services:
     ports:
       - "8080:8080"
     volumes:
-      # Mount a local directory to persist scraped content
+      # Mount the user's home directory for broader access to client folders
+      - ${HOME}:/app/host_home
+      # Mount the local project directory
       - ./wp_dump:/app/wp_dump
-      # Optional: Mount a custom output directory
-      # - /path/to/your/preferred/output:/app/wp_dump
+      # Optional: Mount other common directories for client work
+      - /Volumes:/app/volumes  # For macOS external drives
+      # - /mnt:/app/mnt        # For Linux mount points
     environment:
       - FLASK_ENV=production
       - PYTHONUNBUFFERED=1

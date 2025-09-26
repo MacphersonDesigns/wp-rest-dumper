@@ -141,6 +141,9 @@ def scrape_worker(**kwargs):
         if success:
             # Add success message
             app_state['output_messages'].put(f"\n✅ {message}")
+            app_state['output_messages'].put(f"\n📁 Raw text files saved to: {os.path.join(output_dir, 'raw_pages/')}")
+            app_state['output_messages'].put(f"\n✨ Pretty text files saved to: {os.path.join(output_dir, 'pretty_pages/')}")
+            app_state['output_messages'].put(f"\n🖼️ Media files saved to: {os.path.join(output_dir, 'images/')}")
 
             # Automatically create ZIP file
             app_state['output_messages'].put(f"\n📦 Creating ZIP file...")
@@ -183,6 +186,62 @@ def status():
         'success': app_state.get('success', False),
         'output_dir': app_state.get('last_output_dir')
     })
+
+@app.route('/browse')
+def browse_directories():
+    """Browse directories for output location selection."""
+    path = request.args.get('path', '')
+    
+    # Map container paths to host paths for Docker
+    if not path:
+        # Start with common directories
+        return jsonify({
+            'current_path': '',
+            'directories': [
+                {'name': 'Home Directory', 'path': '/app/host_home', 'type': 'directory'},
+                {'name': 'External Drives', 'path': '/app/volumes', 'type': 'directory'},
+                {'name': 'Local Project', 'path': '/app/wp_dump', 'type': 'directory'}
+            ],
+            'can_select': False
+        })
+    
+    try:
+        # Security check - only allow browsing mounted directories
+        allowed_prefixes = ['/app/host_home', '/app/volumes', '/app/wp_dump', '/app']
+        if not any(path.startswith(prefix) for prefix in allowed_prefixes):
+            return jsonify({'error': 'Access denied'}), 403
+            
+        if not os.path.exists(path):
+            return jsonify({'error': 'Directory not found'}), 404
+            
+        items = []
+        
+        # Add parent directory link (except at root)
+        if path != '/app' and '/' in path.rstrip('/'):
+            parent = os.path.dirname(path.rstrip('/'))
+            items.append({'name': '..', 'path': parent, 'type': 'parent'})
+        
+        # List directories
+        try:
+            for item in sorted(os.listdir(path)):
+                item_path = os.path.join(path, item)
+                if os.path.isdir(item_path) and not item.startswith('.'):
+                    items.append({
+                        'name': item, 
+                        'path': item_path, 
+                        'type': 'directory'
+                    })
+        except PermissionError:
+            return jsonify({'error': 'Permission denied'}), 403
+            
+        return jsonify({
+            'current_path': path,
+            'directories': items,
+            'can_select': True  # Allow selecting any browseable directory
+        })
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/create-zip', methods=['POST'])
 def download_zip():
