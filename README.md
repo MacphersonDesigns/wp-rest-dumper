@@ -1,10 +1,13 @@
 # WordPress REST API Dumper
 
-A Python tool for extracting content from WordPress sites via the REST API. Dumps pages, posts, custom post types, and media files to local storage with structured metadata.
+A powerful Python tool for extracting content from WordPress sites via the REST API. Features both command-line and web-based interfaces, with automatic site organization and ZIP packaging.
 
 ## Features
 
 - 🚀 **Fast Content Extraction**: Efficiently fetches all public content via REST API
+- 🌐 **Web GUI**: Modern browser-based interface for easy use
+- 📁 **Site Organization**: Automatically creates separate folders for each website
+- 📦 **Automatic ZIP Packaging**: Creates downloadable ZIP files on completion
 - 📄 **Text Content**: Converts HTML to clean text for pages, posts, and custom post types
 - 🖼️ **Media Downloads**: Downloads original images and files with metadata
 - 🔐 **Authentication Support**: Interactive authentication for protected endpoints
@@ -12,21 +15,46 @@ A Python tool for extracting content from WordPress sites via the REST API. Dump
 - 🛡️ **Error Resilient**: Gracefully handles authentication errors and missing endpoints
 - 🎯 **Smart Discovery**: Automatically discovers available content types
 - 📝 **Verbose Logging**: Detailed output for debugging and monitoring
+- ⚡ **Real-time Progress**: Live updates in both CLI and web interface
 
 ## Installation
 
 ```bash
-# Clone or download the script
-git clone <repository-url>
-cd wp_dumpper
+# Clone the repository
+git clone https://github.com/MacphersonDesigns/wp-rest-dumper.git
+cd wp-rest-dumper
 
 # Create virtual environment (recommended)
 python -m venv .venv
 source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 
 # Install dependencies
-pip install requests
+pip install requests flask
 ```
+
+## Usage Modes
+
+### 🌐 Web Interface (Recommended)
+
+Launch the web-based GUI for an intuitive, point-and-click experience:
+
+```bash
+python wp_dumper_web_gui.py
+```
+
+Then open your browser to: **http://localhost:8080**
+
+**Web Interface Features:**
+- 📱 **User-friendly form**: Enter URL, configure options, set save location
+- 📊 **Real-time progress**: Live updates and terminal-style output
+- 📦 **Instant ZIP downloads**: Automatically created when scraping completes
+- 🔐 **Authentication panel**: Toggle-able username/password fields
+- ⚙️ **All CLI options**: Include all content types, skip media, verbose output
+- 💾 **Custom save locations**: Choose where to save your scraped content
+
+### 💻 Command Line Interface
+
+For automation, scripting, or advanced users:
 
 ## Quick Start
 
@@ -97,21 +125,31 @@ python wp_rest_dump.py https://example.com --no-auth --all-types
 
 ## Output Structure
 
-The script creates the following directory structure:
+The tool creates site-specific directories to keep different websites organized:
 
 ```
 wp_dump/
-├── index.json          # Complete metadata for all content
-├── pages/              # Text content files
-│   ├── pages-homepage.txt
-│   ├── pages-about.txt
-│   ├── posts-hello-world.txt
-│   └── custom-type-item.txt
-└── images/             # Downloaded media files
-    ├── image1.jpg
-    ├── document.pdf
-    └── video.mp4
+├── Site-Name-1/                    # Each site gets its own folder
+│   ├── index.json                  # Complete metadata for this site
+│   ├── pages/                      # Text content files
+│   │   ├── pages-homepage.txt
+│   │   ├── pages-about.txt
+│   │   ├── posts-hello-world.txt
+│   │   └── custom-type-item.txt
+│   └── images/                     # Downloaded media files
+│       ├── image1.jpg
+│       ├── document.pdf
+│       └── video.mp4
+├── Site-Name-2/                    # Another site's content
+│   ├── index.json
+│   ├── pages/
+│   └── images/
+└── Site-Name-1_20250926_141105.zip # Automatic ZIP files
 ```
+
+**Site Folder Names**: Generated from the WordPress site name, with special characters removed and spaces converted to hyphens (e.g., "My Blog!" becomes "My-Blog").
+
+**ZIP Files**: Automatically created with timestamp for easy backup and sharing.
 
 ### index.json Structure
 

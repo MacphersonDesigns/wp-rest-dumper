@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>WordPress REST Dumper</title>
+		<style>
+			body {
+				font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+					sans-serif;
+				max-width: 900px;
+				margin: 20px auto;
+				padding: 20px;
+				background-color: #f5f5f5;
+			}
+			.container {
+				background: white;
+				padding: 30px;
+				border-radius: 10px;
+				box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+			}
+			h1 {
+				color: #333;
+				text-align: center;
+				margin-bottom: 30px;
+			}
+			.form-group {
+				margin-bottom: 20px;
+			}
+			label {
+				display: block;
+				margin-bottom: 5px;
+				font-weight: 500;
+				color: #555;
+			}
+			input[type="text"],
+			input[type="password"],
+			input[type="number"],
+			select {
+				width: 100%;
+				padding: 10px;
+				border: 2px solid #ddd;
+				border-radius: 5px;
+				font-size: 14px;
+				box-sizing: border-box;
+			}
+			input[type="text"]:focus,
+			input[type="password"]:focus,
+			input[type="number"]:focus {
+				border-color: #007cba;
+				outline: none;
+			}
+			.checkbox-group {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 20px;
+				margin-top: 10px;
+			}
+			.checkbox-item {
+				display: flex;
+				align-items: center;
+			}
+			.checkbox-item input[type="checkbox"] {
+				margin-right: 8px;
+			}
+			.auth-section {
+				background: #f8f9fa;
+				padding: 20px;
+				border-radius: 5px;
+				border: 1px solid #e9ecef;
+				margin-bottom: 20px;
+			}
+			.auth-section.disabled {
+				opacity: 0.6;
+			}
+			.button-group {
+				text-align: center;
+				margin: 30px 0;
+			}
+			button {
+				background: #007cba;
+				color: white;
+				border: none;
+				padding: 12px 24px;
+				border-radius: 5px;
+				font-size: 16px;
+				cursor: pointer;
+				margin: 0 10px;
+				transition: background 0.2s;
+			}
+			button:hover:not(:disabled) {
+				background: #005a8b;
+			}
+			button:disabled {
+				background: #ccc;
+				cursor: not-allowed;
+			}
+			.secondary {
+				background: #6c757d;
+			}
+			.secondary:hover:not(:disabled) {
+				background: #545b62;
+			}
+			.success {
+				background: #28a745;
+			}
+			.success:hover:not(:disabled) {
+				background: #1e7e34;
+			}
+			#output {
+				background: #000;
+				color: #0f0;
+				font-family: "Courier New", monospace;
+				padding: 20px;
+				border-radius: 5px;
+				height: 300px;
+				overflow-y: auto;
+				white-space: pre-wrap;
+				font-size: 12px;
+				line-height: 1.4;
+			}
+			.status-bar {
+				background: #e9ecef;
+				padding: 10px;
+				border-radius: 5px;
+				margin: 20px 0;
+				font-weight: 500;
+				text-align: center;
+			}
+			.progress-bar {
+				width: 100%;
+				height: 4px;
+				background: #e9ecef;
+				border-radius: 2px;
+				overflow: hidden;
+				margin: 10px 0;
+			}
+			.progress-fill {
+				height: 100%;
+				background: #007cba;
+				animation: progress 2s linear infinite;
+				display: none;
+			}
+			@keyframes progress {
+				0% {
+					transform: translateX(-100%);
+				}
+				100% {
+					transform: translateX(400%);
+				}
+			}
+			.row {
+				display: flex;
+				gap: 20px;
+			}
+			.col {
+				flex: 1;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="container">
+			<h1>🔄 WordPress REST Dumper</h1>
+
+			<form id="scraperForm">
+				<div class="form-group">
+					<label for="url">Website URL *</label>
+					<input
+						type="text"
+						id="url"
+						name="url"
+						placeholder="https://example.com"
+						required />
+				</div>
+
+				<div class="auth-section" id="authSection">
+					<div class="form-group">
+						<div class="checkbox-item">
+							<input type="checkbox" id="useAuth" name="useAuth" />
+							<label for="useAuth"
+								>Use Authentication (for protected content)</label
+							>
+						</div>
+					</div>
+
+					<div class="row">
+						<div class="col">
+							<div class="form-group">
+								<label for="username">Username</label>
+								<input type="text" id="username" name="username" disabled />
+							</div>
+						</div>
+						<div class="col">
+							<div class="form-group">
+								<label for="password">Password</label>
+								<input type="password" id="password" name="password" disabled />
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label>Options</label>
+					<div class="checkbox-group">
+						<div class="checkbox-item">
+							<input type="checkbox" id="allTypes" name="allTypes" />
+							<label for="allTypes">Include all content types</label>
+						</div>
+						<div class="checkbox-item">
+							<input type="checkbox" id="skipMedia" name="skipMedia" />
+							<label for="skipMedia">Skip media downloads</label>
+						</div>
+						<div class="checkbox-item">
+							<input type="checkbox" id="verbose" name="verbose" />
+							<label for="verbose">Verbose output</label>
+						</div>
+					</div>
+				</div>
+
+				<div class="row">
+					<div class="col">
+						<div class="form-group">
+							<label for="outputDir">Save Location</label>
+							<input
+								type="text"
+								id="outputDir"
+								name="outputDir"
+								value="wp_dump"
+								placeholder="e.g., /Users/yourname/Downloads/scraped_sites" />
+							<small style="color: #666; font-size: 12px">
+								💡 Each website will create its own subfolder here (e.g.,
+								wp_dump/site-name/)
+							</small>
+						</div>
+					</div>
+					<div class="col">
+						<div class="form-group">
+							<label for="sleepTime">Delay Between Requests (seconds)</label>
+							<input
+								type="number"
+								id="sleepTime"
+								name="sleepTime"
+								value="0.2"
+								min="0.1"
+								max="5"
+								step="0.1" />
+						</div>
+					</div>
+				</div>
+			</form>
+
+			<div class="button-group">
+				<button type="button" id="startBtn" onclick="startScraping()">
+					🚀 Start Scraping
+				</button>
+				<button
+					type="button"
+					id="zipBtn"
+					onclick="downloadZip()"
+					disabled
+					class="success">
+					� Download ZIP
+				</button>
+				<button type="button" onclick="clearOutput()" class="secondary">
+					🗑️ Clear Output
+				</button>
+			</div>
+
+			<div class="status-bar" id="statusBar">Ready</div>
+
+			<div class="progress-bar">
+				<div class="progress-fill" id="progressBar"></div>
+			</div>
+
+			<div class="form-group">
+				<label for="output">Output</label>
+				<div id="output">
+					Welcome to WordPress REST Dumper! Enter a website URL above and click
+					"Start Scraping" to begin. 💡 Tips: - Use authentication if the site
+					has protected content - Enable "All content types" to get custom post
+					types - Skip media downloads for faster text-only extraction - Verbose
+					output shows detailed progress information
+				</div>
+			</div>
+		</div>
+
+		<script>
+			let isScrapingActive = false;
+
+			// Toggle authentication fields
+			document
+				.getElementById("useAuth")
+				.addEventListener("change", function () {
+					const isEnabled = this.checked;
+					const authSection = document.getElementById("authSection");
+					const username = document.getElementById("username");
+					const password = document.getElementById("password");
+
+					username.disabled = !isEnabled;
+					password.disabled = !isEnabled;
+					authSection.classList.toggle("disabled", !isEnabled);
+				});
+
+			// Auto-format URL
+			document.getElementById("url").addEventListener("blur", function () {
+				let url = this.value.trim();
+				if (url && !url.match(/^https?:\/\//i)) {
+					this.value = "https://" + url;
+				}
+			});
+
+			function appendOutput(message) {
+				const output = document.getElementById("output");
+				output.textContent += message;
+				output.scrollTop = output.scrollHeight;
+			}
+
+			function clearOutput() {
+				document.getElementById("output").textContent = "";
+			}
+
+			function setStatus(status) {
+				document.getElementById("statusBar").textContent = status;
+			}
+
+			function setProgress(visible) {
+				document.getElementById("progressBar").style.display = visible
+					? "block"
+					: "none";
+			}
+
+			function validateForm() {
+				const url = document.getElementById("url").value.trim();
+				if (!url) {
+					alert("Please enter a website URL");
+					return false;
+				}
+
+				const useAuth = document.getElementById("useAuth").checked;
+				if (useAuth) {
+					const username = document.getElementById("username").value.trim();
+					const password = document.getElementById("password").value.trim();
+					if (!username || !password) {
+						alert("Please enter both username and password for authentication");
+						return false;
+					}
+				}
+
+				return true;
+			}
+
+			async function startScraping() {
+				if (!validateForm() || isScrapingActive) return;
+
+				const form = document.getElementById("scraperForm");
+				const formData = new FormData(form);
+
+				// Convert to JSON
+				const data = {};
+				for (let [key, value] of formData.entries()) {
+					if (form.elements[key].type === "checkbox") {
+						data[key] = form.elements[key].checked;
+					} else {
+						data[key] = value;
+					}
+				}
+
+				isScrapingActive = true;
+				document.getElementById("startBtn").disabled = true;
+				document.getElementById("zipBtn").disabled = true;
+				setStatus("Scraping in progress...");
+				setProgress(true);
+				clearOutput();
+
+				try {
+					const response = await fetch("/scrape", {
+						method: "POST",
+						headers: { "Content-Type": "application/json" },
+						body: JSON.stringify(data),
+					});
+
+					// Start polling for updates
+					pollForUpdates();
+				} catch (error) {
+					appendOutput("\nError: " + error.message);
+					scrapingComplete(false);
+				}
+			}
+
+			async function pollForUpdates() {
+				try {
+					const response = await fetch("/status");
+					const data = await response.json();
+
+					// Append new output messages
+					if (data.messages && data.messages.length > 0) {
+						for (const message of data.messages) {
+							appendOutput(message);
+						}
+					}
+
+					setStatus(data.status);
+
+					if (data.scraping_active) {
+						// Continue polling
+						setTimeout(pollForUpdates, 1000);
+					} else {
+						scrapingComplete(data.success, data.output_dir);
+					}
+				} catch (error) {
+					console.error("Polling error:", error);
+					setTimeout(pollForUpdates, 2000); // Retry after longer delay
+				}
+			}
+
+			function scrapingComplete(success, outputDir) {
+				isScrapingActive = false;
+				document.getElementById("startBtn").disabled = false;
+				setProgress(false);
+
+				if (success && outputDir) {
+					document.getElementById("zipBtn").disabled = false;
+					setStatus("Scraping completed! ZIP file ready for download.");
+					appendOutput("\n\n✅ Scraping completed successfully!");
+				} else {
+					setStatus("Scraping failed - check output for details.");
+					appendOutput("\n\n❌ Scraping failed.");
+				}
+			}
+
+			async function downloadZip() {
+				try {
+					setStatus("Creating ZIP file...");
+					setProgress(true);
+
+					const response = await fetch("/create-zip", { method: "POST" });
+
+					if (response.ok) {
+						// Trigger download
+						const blob = await response.blob();
+						const url = window.URL.createObjectURL(blob);
+						const a = document.createElement("a");
+						a.style.display = "none";
+						a.href = url;
+						a.download =
+							response.headers
+								.get("Content-Disposition")
+								?.split("filename=")[1] || "wordpress_dump.zip";
+						document.body.appendChild(a);
+						a.click();
+						window.URL.revokeObjectURL(url);
+
+						setStatus("ZIP file downloaded successfully!");
+						appendOutput("\n📦 ZIP file downloaded to your Downloads folder");
+					} else {
+						throw new Error("Failed to create ZIP file");
+					}
+				} catch (error) {
+					setStatus("ZIP creation failed");
+					appendOutput("\n❌ Error creating ZIP: " + error.message);
+				} finally {
+					setProgress(false);
+				}
+			}
+		</script>
+	</body>
+</html>
