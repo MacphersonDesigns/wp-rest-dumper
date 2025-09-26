@@ -242,3 +242,11 @@ logs/
 *.sql
 *.db
 *.sqlite
+
+# ===================
+# DOCKER
+# ===================
+# Don't commit Docker volumes or runtime files
+.docker/
+docker-volumes/
+*.dockerfile.bak

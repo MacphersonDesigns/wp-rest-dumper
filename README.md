@@ -19,6 +19,24 @@ A powerful Python tool for extracting content from WordPress sites via the REST 
 
 ## Installation
 
+### 🐳 Docker (Recommended - Zero Setup)
+
+```bash
+# Clone the repository
+git clone https://github.com/MacphersonDesigns/wp-rest-dumper.git
+cd wp-rest-dumper
+
+# Start the service (builds and runs automatically)
+docker-compose up -d
+
+# Or use the interactive manager
+./docker-manager.sh
+```
+
+**Access at: http://localhost:8080** - No terminal needed, runs as persistent service!
+
+### 🐍 Manual Python Setup
+
 ```bash
 # Clone the repository
 git clone https://github.com/MacphersonDesigns/wp-rest-dumper.git
@@ -29,7 +47,7 @@ python -m venv .venv
 source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 
 # Install dependencies
-pip install requests flask
+pip install -r requirements.txt
 ```
 
 ## Usage Modes

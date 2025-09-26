@@ -1,0 +1,29 @@
+services:
+  wp-dumper:
+    build: .
+    container_name: wp-rest-dumper
+    ports:
+      - "8080:8080"
+    volumes:
+      # Mount a local directory to persist scraped content
+      - ./wp_dump:/app/wp_dump
+      # Optional: Mount a custom output directory
+      # - /path/to/your/preferred/output:/app/wp_dump
+    environment:
+      - FLASK_ENV=production
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    labels:
+      - "traefik.enable=false"  # If you use Traefik
+      - "com.docker.compose.project=wp-rest-dumper"
+
+# Optional: Create a network for isolation
+networks:
+  default:
+    name: wp-dumper-network

@@ -217,8 +217,13 @@ def main():
     print("\n💡 Press Ctrl+C to stop the server")
     print("=" * 50)
 
+    # Use 0.0.0.0 for Docker compatibility, 127.0.0.1 for local development
+    import os
+    host = '0.0.0.0' if os.getenv('FLASK_ENV') == 'production' else '127.0.0.1'
+    debug = os.getenv('FLASK_ENV') != 'production'
+    
     try:
-        app.run(host='127.0.0.1', port=8080, debug=True, threaded=True)
+        app.run(host=host, port=8080, debug=debug, threaded=True)
     except KeyboardInterrupt:
         print("\n\n👋 Server stopped. Goodbye!")
 
