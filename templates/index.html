@@ -115,9 +115,11 @@
 				border-radius: 5px;
 				height: 300px;
 				overflow-y: auto;
-				white-space: pre-wrap;
+				white-space: pre-line;
 				font-size: 12px;
-				line-height: 1.4;
+				line-height: 1.6;
+				word-wrap: break-word;
+				overflow-wrap: break-word;
 			}
 			.status-bar {
 				background: #e9ecef;
@@ -155,6 +157,29 @@
 			}
 			.col {
 				flex: 1;
+			}
+			.file-input-group {
+				display: flex;
+				gap: 10px;
+				align-items: stretch;
+			}
+			.file-input-group input {
+				flex: 1;
+				margin: 0;
+			}
+			.browse-btn {
+				background: #6c757d;
+				color: white;
+				border: none;
+				padding: 10px 15px;
+				border-radius: 5px;
+				font-size: 14px;
+				cursor: pointer;
+				white-space: nowrap;
+				margin: 0;
+			}
+			.browse-btn:hover {
+				background: #545b62;
 			}
 		</style>
 	</head>
@@ -221,12 +246,20 @@
 					<div class="col">
 						<div class="form-group">
 							<label for="outputDir">Save Location</label>
-							<input
-								type="text"
-								id="outputDir"
-								name="outputDir"
-								value="wp_dump"
-								placeholder="e.g., /Users/yourname/Downloads/scraped_sites" />
+							<div class="file-input-group">
+								<input
+									type="text"
+									id="outputDir"
+									name="outputDir"
+									value="wp_dump"
+									placeholder="e.g., /Users/yourname/Downloads/scraped_sites" />
+								<button
+									type="button"
+									class="browse-btn"
+									onclick="browseFolder()">
+									📁 Browse
+								</button>
+							</div>
 							<small style="color: #666; font-size: 12px">
 								💡 Each website will create its own subfolder here (e.g.,
 								wp_dump/site-name/)
@@ -395,10 +428,18 @@
 					// Append new output messages
 					if (data.messages && data.messages.length > 0) {
 						for (const message of data.messages) {
-							appendOutput(message);
+							// Clean up message formatting
+							let cleanMessage = message
+								.replace(/\r\n/g, "\n") // Normalize line endings
+								.replace(/\r/g, "\n") // Normalize line endings
+								.trim(); // Remove leading/trailing whitespace
+
+							if (cleanMessage) {
+								// Only append non-empty messages
+								appendOutput(cleanMessage + "\n");
+							}
 						}
 					}
-
 					setStatus(data.status);
 
 					if (data.scraping_active) {
@@ -460,6 +501,48 @@
 					appendOutput("\n❌ Error creating ZIP: " + error.message);
 				} finally {
 					setProgress(false);
+				}
+			}
+
+			function browseFolder() {
+				// Since we're in a web browser, we can't directly access the file system
+				// Instead, we'll show a helpful dialog with common paths
+				const currentPath = document.getElementById("outputDir").value;
+
+				const commonPaths = [
+					"wp_dump",
+					"~/Downloads/scraped_sites",
+					"~/Desktop/wordpress_dumps",
+					"/Users/" +
+						(navigator.userAgent.includes("Mac")
+							? Intl.DateTimeFormat()
+									.resolvedOptions()
+									.timeZone.split("/")[1] || "username"
+							: "username") +
+						"/Downloads",
+					"./scraped_content",
+				];
+
+				let pathOptions = "Choose a save location or enter a custom path:\n\n";
+				pathOptions += "Common locations:\n";
+				for (let i = 0; i < commonPaths.length; i++) {
+					pathOptions += `${i + 1}. ${commonPaths[i]}\n`;
+				}
+				pathOptions +=
+					"\nEnter the number (1-" +
+					commonPaths.length +
+					") or type a custom path:";
+
+				const userInput = prompt(pathOptions, currentPath);
+
+				if (userInput !== null) {
+					const numChoice = parseInt(userInput);
+					if (numChoice >= 1 && numChoice <= commonPaths.length) {
+						document.getElementById("outputDir").value =
+							commonPaths[numChoice - 1];
+					} else if (userInput.trim() !== "") {
+						document.getElementById("outputDir").value = userInput.trim();
+					}
 				}
 			}
 		</script>

@@ -1,0 +1,19 @@
+# WordPress REST API Dumper Dependencies
+# Core packages required for both CLI and web GUI versions
+
+# HTTP requests library for WordPress REST API calls
+requests>=2.31.0
+
+# Web framework for the GUI interface
+Flask>=3.0.0
+
+# Additional dependencies that get installed with Flask/requests
+# (these are typically installed automatically but listed for completeness)
+# certifi>=2023.0.0  # SSL certificates
+# urllib3>=2.0.0     # HTTP library used by requests
+# Jinja2>=3.0.0      # Template engine used by Flask
+# Werkzeug>=3.0.0    # WSGI utility library used by Flask
+# click>=8.0.0       # Command line utilities used by Flask
+# MarkupSafe>=2.1.0  # String handling used by Jinja2
+# blinker>=1.6.0     # Signaling library used by Flask
+# itsdangerous>=2.1.0 # Security utilities used by Flask

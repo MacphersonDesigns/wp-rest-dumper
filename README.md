@@ -45,6 +45,7 @@ python wp_dumper_web_gui.py
 Then open your browser to: **http://localhost:8080**
 
 **Web Interface Features:**
+
 - 📱 **User-friendly form**: Enter URL, configure options, set save location
 - 📊 **Real-time progress**: Live updates and terminal-style output
 - 📦 **Instant ZIP downloads**: Automatically created when scraping completes
