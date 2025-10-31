@@ -10,7 +10,7 @@ services:
       # Mount the local project directory
       - ./wp_dump:/app/wp_dump
       # Optional: Mount other common directories for client work
-      - /Volumes:/app/volumes  # For macOS external drives
+      - /Volumes:/app/volumes # For macOS external drives
       # - /mnt:/app/mnt        # For Linux mount points
     environment:
       - FLASK_ENV=production

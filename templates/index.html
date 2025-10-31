@@ -181,7 +181,7 @@
 			.browse-btn:hover {
 				background: #545b62;
 			}
-			
+
 			/* Modal styles for directory browser */
 			.modal {
 				display: none;
@@ -193,7 +193,7 @@
 				height: 100%;
 				background-color: rgba(0, 0, 0, 0.5);
 			}
-			
+
 			.modal-content {
 				background-color: white;
 				margin: 5% auto;
@@ -206,25 +206,25 @@
 				display: flex;
 				flex-direction: column;
 			}
-			
+
 			.modal-header {
 				display: flex;
 				justify-content: space-between;
 				align-items: center;
 				margin-bottom: 20px;
 			}
-			
+
 			.close {
 				color: #aaa;
 				font-size: 28px;
 				font-weight: bold;
 				cursor: pointer;
 			}
-			
+
 			.close:hover {
 				color: black;
 			}
-			
+
 			.directory-list {
 				flex: 1;
 				overflow-y: auto;
@@ -232,7 +232,7 @@
 				border-radius: 5px;
 				max-height: 300px;
 			}
-			
+
 			.directory-item {
 				padding: 10px;
 				border-bottom: 1px solid #eee;
@@ -240,27 +240,27 @@
 				display: flex;
 				align-items: center;
 			}
-			
+
 			.directory-item:hover {
 				background-color: #f5f5f5;
 			}
-			
+
 			.directory-item.selected {
 				background-color: #e3f2fd;
 			}
-			
+
 			.directory-icon {
 				margin-right: 8px;
 				font-size: 16px;
 			}
-			
+
 			.modal-footer {
 				margin-top: 20px;
 				display: flex;
 				justify-content: space-between;
 				align-items: center;
 			}
-			
+
 			.current-path {
 				font-family: monospace;
 				background: #f5f5f5;
@@ -270,13 +270,49 @@
 				flex: 1;
 				margin-right: 10px;
 			}
+
+			/* Tab styles */
+			.tab-btn {
+				transition: all 0.2s ease;
+			}
+			.tab-btn:hover {
+				color: #007cba !important;
+				background-color: rgba(0, 124, 186, 0.05) !important;
+			}
+			.tab-btn.active {
+				color: #007cba !important;
+				border-bottom-color: #007cba !important;
+			}
+			
+			.tab-content {
+				animation: fadeIn 0.3s ease-in-out;
+			}
+			
+			@keyframes fadeIn {
+				from { opacity: 0; transform: translateY(10px); }
+				to { opacity: 1; transform: translateY(0); }
+			}
 		</style>
 	</head>
 	<body>
 		<div class="container">
 			<h1>🔄 WordPress REST Dumper</h1>
 
-			<form id="scraperForm">
+			<!-- Tab Navigation -->
+			<div style="margin-bottom: 30px; border-bottom: 2px solid #e9ecef;">
+				<div style="display: flex; gap: 0;">
+					<button type="button" class="tab-btn active" onclick="switchTab('bulk')" style="background: none; border: none; padding: 15px 25px; font-size: 16px; font-weight: 500; color: #007cba; border-bottom: 3px solid #007cba; cursor: pointer;">
+						🌐 Full Site Analysis
+					</button>
+					<button type="button" class="tab-btn" onclick="switchTab('single')" style="background: none; border: none; padding: 15px 25px; font-size: 16px; font-weight: 500; color: #666; border-bottom: 3px solid transparent; cursor: pointer;">
+						📄 Single Page Extract
+					</button>
+				</div>
+			</div>
+
+			<!-- Bulk Analysis Tab -->
+			<div id="bulkTab" class="tab-content">
+				<form id="scraperForm">
 				<div class="form-group">
 					<label for="url">Website URL *</label>
 					<input
@@ -314,7 +350,7 @@
 				</div>
 
 				<div class="form-group">
-					<label>Options</label>
+					<label>Scraping Options</label>
 					<div class="checkbox-group">
 						<div class="checkbox-item">
 							<input type="checkbox" id="allTypes" name="allTypes" />
@@ -327,6 +363,38 @@
 						<div class="checkbox-item">
 							<input type="checkbox" id="verbose" name="verbose" />
 							<label for="verbose">Verbose output</label>
+						</div>
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label>🚀 Content Intelligence & Analysis</label>
+					<div class="checkbox-group">
+						<div class="checkbox-item">
+							<input
+								type="checkbox"
+								id="runAnalytics"
+								name="runAnalytics"
+								checked />
+							<label for="runAnalytics"
+								>📊 Generate content analytics dashboard</label
+							>
+						</div>
+						<div class="checkbox-item">
+							<input
+								type="checkbox"
+								id="runSeoAnalysis"
+								name="runSeoAnalysis"
+								checked />
+							<label for="runSeoAnalysis">🎯 Create SEO analysis report</label>
+						</div>
+						<div class="checkbox-item">
+							<input
+								type="checkbox"
+								id="createMaster"
+								name="createMaster"
+								checked />
+							<label for="createMaster">🎨 Generate master dashboard</label>
 						</div>
 					</div>
 				</div>
@@ -373,7 +441,7 @@
 
 			<div class="button-group">
 				<button type="button" id="startBtn" onclick="startScraping()">
-					🚀 Start Scraping
+					🚀 Start Complete Analysis
 				</button>
 				<button
 					type="button"
@@ -381,10 +449,37 @@
 					onclick="downloadZip()"
 					disabled
 					class="success">
-					� Download ZIP
+					📦 Download ZIP
 				</button>
 				<button type="button" onclick="clearOutput()" class="secondary">
 					🗑️ Clear Output
+				</button>
+			</div>
+
+			<div class="button-group" style="margin-top: 10px">
+				<button
+					type="button"
+					onclick="runAnalyticsOnly()"
+					class="secondary"
+					disabled
+					id="analyticsBtn">
+					📊 Analytics Only
+				</button>
+				<button
+					type="button"
+					onclick="runSeoOnly()"
+					class="secondary"
+					disabled
+					id="seoBtn">
+					🎯 SEO Analysis Only
+				</button>
+				<button
+					type="button"
+					onclick="openDashboard()"
+					class="secondary"
+					disabled
+					id="dashboardBtn">
+					🌟 Open Dashboard
 				</button>
 			</div>
 
@@ -397,19 +492,148 @@
 			<div class="form-group">
 				<label for="output">Output</label>
 				<div id="output">
-					Welcome to WordPress REST Dumper! Enter a website URL above and click
-					"Start Scraping" to begin. 
-					
-					🆕 NEW: Dual Output Format!
-					• Raw pages: Original text extraction (strips all HTML)
-					• Pretty pages: Enhanced format with links, headings, and contact info
-					
-					💡 Tips: 
-					- Use authentication if the site has protected content 
-					- Enable "All content types" to get custom post types 
-					- Skip media downloads for faster text-only extraction 
-					- Use "Browse" to select custom save locations on your computer
-					- Verbose output shows detailed progress information
+					🚀 Welcome to WordPress Content Intelligence Suite! 🎉 NEW ADVANCED
+					FEATURES: • 📝 Triple Output Formats: Raw, Enhanced Pretty, and
+					Markdown • 🎨 Smart Shortcode Cleaning: Removes VC/Elementor/Divi
+					codes • 🔍 Business Data Extraction: Auto-extracts dealers, contacts,
+					addresses as JSON • 📊 Content Analytics Dashboard: Word counts,
+					readability, insights • 🎯 SEO Analysis Report: Meta tags, keywords,
+					optimization tips • 🌟 Master Dashboard: Unified beautiful interface
+					for all reports 💡 How to Use: 1. Enter your WordPress site URL above
+					2. Enable authentication for protected content (optional) 3. Choose
+					analysis options (analytics & SEO recommended) 4. Click "Start
+					Complete Analysis" and watch the magic happen! 5. Download your ZIP
+					with all reports and extracted content 🔧 Output Includes: • Raw text
+					files (clean text extraction) • Pretty text files (enhanced with
+					structured data) • Markdown files (beautiful formatted content) •
+					Analytics dashboard (interactive HTML report) • SEO analysis report
+					(optimization recommendations) • Master dashboard (combines everything
+					beautifully) Ready to extract and analyze? Enter a URL above! ⬆️ -
+					Verbose output shows detailed progress information
+				</div>
+			</div>
+			</div>
+
+			<!-- Single Page Extract Tab -->
+			<div id="singleTab" class="tab-content" style="display: none;">
+				<form id="singlePageForm">
+					<div class="form-group">
+						<label for="singlePageUrl">Single Page URL *</label>
+						<input
+							type="text"
+							id="singlePageUrl"
+							name="singlePageUrl"
+							placeholder="https://example.com/specific-page/"
+							required />
+						<small style="color: #666; font-size: 12px;">
+							💡 Enter the full URL of a specific WordPress page or post
+						</small>
+					</div>
+
+					<div class="auth-section" id="singleAuthSection">
+						<div class="form-group">
+							<div class="checkbox-item">
+								<input type="checkbox" id="singleUseAuth" name="singleUseAuth" />
+								<label for="singleUseAuth"
+									>Use Authentication (for protected content)</label
+								>
+							</div>
+						</div>
+
+						<div class="row">
+							<div class="col">
+								<div class="form-group">
+									<label for="singleUsername">Username</label>
+									<input type="text" id="singleUsername" name="singleUsername" disabled />
+								</div>
+							</div>
+							<div class="col">
+								<div class="form-group">
+									<label for="singlePassword">Password</label>
+									<input type="password" id="singlePassword" name="singlePassword" disabled />
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<div class="form-group">
+						<label>📊 Data Export Options</label>
+						<div class="checkbox-group">
+							<div class="checkbox-item">
+								<input type="checkbox" id="singleDetailed" name="singleDetailed" checked />
+								<label for="singleDetailed">Create detailed CSV files (recommended)</label>
+							</div>
+							<div class="checkbox-item">
+								<input type="checkbox" id="singleVerbose" name="singleVerbose" />
+								<label for="singleVerbose">Verbose output</label>
+							</div>
+						</div>
+						<small style="color: #666; font-size: 12px;">
+							💡 Detailed mode creates separate CSV files for headings, links, images, and business data
+						</small>
+					</div>
+
+					<div class="form-group">
+						<label for="singleOutputDir">Save Location</label>
+						<div class="file-input-group">
+							<input
+								type="text"
+								id="singleOutputDir"
+								name="singleOutputDir"
+								value="single_page_extracts"
+								placeholder="e.g., /Users/yourname/Downloads/page_extracts" />
+							<button
+								type="button"
+								class="browse-btn"
+								onclick="browseSingleFolder()">
+								📁 Browse
+							</button>
+						</div>
+						<small style="color: #666; font-size: 12px">
+							💡 CSV files will be saved to this directory with a timestamp
+						</small>
+					</div>
+				</form>
+
+				<div class="button-group">
+					<button type="button" id="singleExtractBtn" onclick="extractSinglePage()">
+						📄 Extract Page Data to CSV
+					</button>
+					<button type="button" onclick="clearSingleOutput()" class="secondary">
+						🗑️ Clear Output
+					</button>
+				</div>
+
+				<div class="status-bar" id="singleStatusBar">Ready for single page extraction</div>
+
+				<div class="progress-bar">
+					<div class="progress-fill" id="singleProgressBar"></div>
+				</div>
+
+				<div class="form-group">
+					<label for="singleOutput">Single Page Extraction Output</label>
+					<div id="singleOutput">
+						📄 Single Page Data Extractor 📊
+
+						🎯 What this tool extracts:
+						• Basic page info (title, URL, dates, author)
+						• Content analysis (word count, headings, paragraphs, links)
+						• SEO data (meta tags, Open Graph, schema markup)
+						• Business data (contact info, addresses, phone numbers)
+						• Media information (images, videos, alt text)
+						• Form data (contact forms, fields, actions)
+
+						💾 CSV Output Options:
+						• Simple mode: Single CSV with summary data
+						• Detailed mode: Multiple CSV files for different data types
+						  - page_summary.csv (main page data)
+						  - headings.csv (all headings with levels)
+						  - links.csv (internal/external links)
+						  - images.csv (image sources and alt text)
+						  - business_data.csv (extracted business listings)
+
+						Ready to extract? Enter a page URL above! ⬆️
+					</div>
 				</div>
 			</div>
 		</div>
@@ -422,13 +646,17 @@
 					<span class="close" onclick="closeDirectoryBrowser()">&times;</span>
 				</div>
 				<div id="directoryList" class="directory-list">
-					<div id="loadingIndicator" style="padding: 20px; text-align: center;">
+					<div id="loadingIndicator" style="padding: 20px; text-align: center">
 						Loading directories...
 					</div>
 				</div>
 				<div class="modal-footer">
 					<div class="current-path" id="currentPath">/</div>
-					<button type="button" onclick="selectCurrentDirectory()" id="selectBtn" disabled>
+					<button
+						type="button"
+						onclick="selectCurrentDirectory()"
+						id="selectBtn"
+						disabled>
 						✓ Select This Folder
 					</button>
 				</div>
@@ -437,6 +665,35 @@
 
 		<script>
 			let isScrapingActive = false;
+			let isSingleExtracting = false;
+
+			// Tab switching functionality
+			function switchTab(tabName) {
+				// Update tab buttons
+				document.querySelectorAll('.tab-btn').forEach(btn => {
+					btn.classList.remove('active');
+					btn.style.color = '#666';
+					btn.style.borderBottomColor = 'transparent';
+				});
+				
+				// Hide all tab contents
+				document.querySelectorAll('.tab-content').forEach(content => {
+					content.style.display = 'none';
+				});
+				
+				// Show selected tab
+				if (tabName === 'bulk') {
+					document.getElementById('bulkTab').style.display = 'block';
+					document.querySelector('[onclick="switchTab(\'bulk\')"]').classList.add('active');
+					document.querySelector('[onclick="switchTab(\'bulk\')"]').style.color = '#007cba';
+					document.querySelector('[onclick="switchTab(\'bulk\')"]').style.borderBottomColor = '#007cba';
+				} else if (tabName === 'single') {
+					document.getElementById('singleTab').style.display = 'block';
+					document.querySelector('[onclick="switchTab(\'single\')"]').classList.add('active');
+					document.querySelector('[onclick="switchTab(\'single\')"]').style.color = '#007cba';
+					document.querySelector('[onclick="switchTab(\'single\')"]').style.borderBottomColor = '#007cba';
+				}
+			}
 
 			// Toggle authentication fields
 			document
@@ -452,8 +709,30 @@
 					authSection.classList.toggle("disabled", !isEnabled);
 				});
 
+			// Toggle authentication fields for single page extraction
+			document
+				.getElementById("singleUseAuth")
+				.addEventListener("change", function () {
+					const isEnabled = this.checked;
+					const authSection = document.getElementById("singleAuthSection");
+					const username = document.getElementById("singleUsername");
+					const password = document.getElementById("singlePassword");
+
+					username.disabled = !isEnabled;
+					password.disabled = !isEnabled;
+					authSection.classList.toggle("disabled", !isEnabled);
+				});
+
 			// Auto-format URL
 			document.getElementById("url").addEventListener("blur", function () {
+				let url = this.value.trim();
+				if (url && !url.match(/^https?:\/\//i)) {
+					this.value = "https://" + url;
+				}
+			});
+
+			// Auto-format single page URL
+			document.getElementById("singlePageUrl").addEventListener("blur", function () {
 				let url = this.value.trim();
 				if (url && !url.match(/^https?:\/\//i)) {
 					this.value = "https://" + url;
@@ -466,16 +745,36 @@
 				output.scrollTop = output.scrollHeight;
 			}
 
+			function appendSingleOutput(message) {
+				const output = document.getElementById("singleOutput");
+				output.textContent += message;
+				output.scrollTop = output.scrollHeight;
+			}
+
 			function clearOutput() {
 				document.getElementById("output").textContent = "";
+			}
+
+			function clearSingleOutput() {
+				document.getElementById("singleOutput").textContent = "";
 			}
 
 			function setStatus(status) {
 				document.getElementById("statusBar").textContent = status;
 			}
 
+			function setSingleStatus(status) {
+				document.getElementById("singleStatusBar").textContent = status;
+			}
+
 			function setProgress(visible) {
 				document.getElementById("progressBar").style.display = visible
+					? "block"
+					: "none";
+			}
+
+			function setSingleProgress(visible) {
+				document.getElementById("singleProgressBar").style.display = visible
 					? "block"
 					: "none";
 			}
@@ -499,6 +798,104 @@
 
 				return true;
 			}
+
+			function validateSinglePageForm() {
+				const url = document.getElementById("singlePageUrl").value.trim();
+				if (!url) {
+					alert("Please enter a page URL");
+					return false;
+				}
+
+				const useAuth = document.getElementById("singleUseAuth").checked;
+				if (useAuth) {
+					const username = document.getElementById("singleUsername").value.trim();
+					const password = document.getElementById("singlePassword").value.trim();
+					if (!username || !password) {
+						alert("Please enter both username and password for authentication");
+						return false;
+					}
+				}
+
+				return true;
+			}
+
+			async function extractSinglePage() {
+				if (!validateSinglePageForm() || isSingleExtracting) return;
+
+				const form = document.getElementById("singlePageForm");
+				const formData = new FormData(form);
+
+				// Convert to JSON
+				const data = {};
+				for (let [key, value] of formData.entries()) {
+					if (form.elements[key] && form.elements[key].type === "checkbox") {
+						data[key] = form.elements[key].checked;
+					} else {
+						data[key] = value;
+					}
+				}
+
+				isSingleExtracting = true;
+				document.getElementById("singleExtractBtn").disabled = true;
+				setSingleStatus("Extracting page data...");
+				setSingleProgress(true);
+				clearSingleOutput();
+
+				try {
+					appendSingleOutput("\n🔍 Starting single page data extraction...");
+					appendSingleOutput(`\n📄 Target URL: ${data.singlePageUrl}`);
+					
+					const response = await fetch("/extract-single-page", {
+						method: "POST",
+						headers: { "Content-Type": "application/json" },
+						body: JSON.stringify(data),
+					});
+
+					const result = await response.json();
+
+					if (result.success) {
+						appendSingleOutput("\n✅ Page data extracted successfully!");
+						appendSingleOutput(`\n📊 Files created: ${result.files.length}`);
+						result.files.forEach(file => {
+							appendSingleOutput(`\n   📄 ${file}`);
+						});
+						
+						if (result.summary) {
+							appendSingleOutput(`\n\n📊 Page Summary:`);
+							appendSingleOutput(`\n   Title: ${result.summary.title}`);
+							appendSingleOutput(`\n   Type: ${result.summary.type}`);
+							appendSingleOutput(`\n   Words: ${result.summary.word_count}`);
+							appendSingleOutput(`\n   Headings: ${result.summary.heading_count}`);
+							appendSingleOutput(`\n   Links: ${result.summary.link_count}`);
+							appendSingleOutput(`\n   Images: ${result.summary.image_count}`);
+							if (result.summary.business_count > 0) {
+								appendSingleOutput(`\n   Business listings: ${result.summary.business_count}`);
+							}
+						}
+						
+						setSingleStatus("Extraction completed successfully!");
+					} else {
+						appendSingleOutput(`\n❌ Extraction failed: ${result.error}`);
+						setSingleStatus("Extraction failed");
+					}
+				} catch (error) {
+					appendSingleOutput("\n❌ Error: " + error.message);
+					setSingleStatus("Error during extraction");
+				} finally {
+					isSingleExtracting = false;
+					document.getElementById("singleExtractBtn").disabled = false;
+					setSingleProgress(false);
+				}
+			}
+
+			function browseSingleFolder() {
+				// Use the same folder browser but update the single page field
+				currentSingleBrowsing = true;
+				document.getElementById("directoryModal").style.display = "block";
+				loadDirectories("");
+			}
+
+			let currentSingleBrowsing = false;
 
 			async function startScraping() {
 				if (!validateForm() || isScrapingActive) return;
@@ -579,12 +976,53 @@
 
 				if (success && outputDir) {
 					document.getElementById("zipBtn").disabled = false;
-					setStatus("Scraping completed! ZIP file ready for download.");
-					appendOutput("\n\n✅ Scraping completed successfully!");
+					document.getElementById("analyticsBtn").disabled = false;
+					document.getElementById("seoBtn").disabled = false;
+					document.getElementById("dashboardBtn").disabled = false;
+					setStatus("Complete analysis finished! ZIP file and reports ready.");
+					appendOutput("\n\n✅ Complete analysis finished successfully!");
+					appendOutput("\n📊 Analytics Dashboard: Available in ZIP");
+					appendOutput("\n🎯 SEO Report: Available in ZIP");
+					appendOutput("\n🌟 Master Dashboard: Available in ZIP");
 				} else {
-					setStatus("Scraping failed - check output for details.");
-					appendOutput("\n\n❌ Scraping failed.");
+					setStatus("Analysis failed - check output for details.");
+					appendOutput("\n\n❌ Analysis failed.");
 				}
+			}
+
+			async function runAnalyticsOnly() {
+				appendOutput("\n📊 Running content analytics...");
+				try {
+					const response = await fetch("/analytics-only", { method: "POST" });
+					const result = await response.json();
+					if (result.success) {
+						appendOutput(`\n✅ Analytics report generated: ${result.file}`);
+					} else {
+						appendOutput(`\n❌ Analytics failed: ${result.error}`);
+					}
+				} catch (error) {
+					appendOutput(`\n❌ Analytics error: ${error.message}`);
+				}
+			}
+
+			async function runSeoOnly() {
+				appendOutput("\n🎯 Running SEO analysis...");
+				try {
+					const response = await fetch("/seo-only", { method: "POST" });
+					const result = await response.json();
+					if (result.success) {
+						appendOutput(`\n✅ SEO report generated: ${result.file}`);
+					} else {
+						appendOutput(`\n❌ SEO analysis failed: ${result.error}`);
+					}
+				} catch (error) {
+					appendOutput(`\n❌ SEO analysis error: ${error.message}`);
+				}
+			}
+
+			function openDashboard() {
+				appendOutput("\n🌟 Opening master dashboard in new window...");
+				window.open("/dashboard", "_blank");
 			}
 
 			async function downloadZip() {
@@ -622,66 +1060,69 @@
 				}
 			}
 
-			let currentBrowsingPath = '';
-			let selectedPath = '';
+			let currentBrowsingPath = "";
+			let selectedPath = "";
 
 			function browseFolder() {
-				document.getElementById('directoryModal').style.display = 'block';
-				loadDirectories('');
+				document.getElementById("directoryModal").style.display = "block";
+				loadDirectories("");
 			}
 
 			function closeDirectoryBrowser() {
-				document.getElementById('directoryModal').style.display = 'none';
+				document.getElementById("directoryModal").style.display = "none";
 			}
 
 			async function loadDirectories(path) {
-				const listContainer = document.getElementById('directoryList');
-				const currentPathElement = document.getElementById('currentPath');
-				const selectBtn = document.getElementById('selectBtn');
-				
+				const listContainer = document.getElementById("directoryList");
+				const currentPathElement = document.getElementById("currentPath");
+				const selectBtn = document.getElementById("selectBtn");
+
 				// Show loading
-				listContainer.innerHTML = '<div style="padding: 20px; text-align: center;">Loading directories...</div>';
-				
+				listContainer.innerHTML =
+					'<div style="padding: 20px; text-align: center;">Loading directories...</div>';
+
 				try {
-					const response = await fetch(`/browse?path=${encodeURIComponent(path)}`);
+					const response = await fetch(
+						`/browse?path=${encodeURIComponent(path)}`
+					);
 					const data = await response.json();
-					
+
 					if (data.error) {
 						listContainer.innerHTML = `<div style="padding: 20px; text-align: center; color: red;">Error: ${data.error}</div>`;
 						return;
 					}
-					
+
 					currentBrowsingPath = data.current_path;
-					currentPathElement.textContent = data.current_path || 'Root';
+					currentPathElement.textContent = data.current_path || "Root";
 					selectBtn.disabled = !data.can_select;
-					
+
 					// Clear and populate directory list
-					listContainer.innerHTML = '';
-					
-					data.directories.forEach(dir => {
-						const item = document.createElement('div');
-						item.className = 'directory-item';
+					listContainer.innerHTML = "";
+
+					data.directories.forEach((dir) => {
+						const item = document.createElement("div");
+						item.className = "directory-item";
 						item.onclick = () => {
-							if (dir.type === 'parent') {
+							if (dir.type === "parent") {
 								loadDirectories(dir.path);
-							} else if (dir.type === 'directory') {
+							} else if (dir.type === "directory") {
 								loadDirectories(dir.path);
 							}
 						};
-						
-						const icon = dir.type === 'parent' ? '↩️' : '📁';
+
+						const icon = dir.type === "parent" ? "↩️" : "📁";
 						item.innerHTML = `
 							<span class="directory-icon">${icon}</span>
 							<span>${dir.name}</span>
 						`;
-						
+
 						listContainer.appendChild(item);
 					});
-					
+
 					if (data.directories.length === 0) {
-						listContainer.innerHTML = '<div style="padding: 20px; text-align: center; color: #666;">No accessible directories found</div>';
+						listContainer.innerHTML =
+							'<div style="padding: 20px; text-align: center; color: #666;">No accessible directories found</div>';
 					}
-					
 				} catch (error) {
 					listContainer.innerHTML = `<div style="padding: 20px; text-align: center; color: red;">Error loading directories: ${error.message}</div>`;
 				}
@@ -689,18 +1130,23 @@
 
 			function selectCurrentDirectory() {
 				if (currentBrowsingPath) {
-					document.getElementById('outputDir').value = currentBrowsingPath;
+					if (currentSingleBrowsing) {
+						document.getElementById("singleOutputDir").value = currentBrowsingPath;
+						currentSingleBrowsing = false;
+					} else {
+						document.getElementById("outputDir").value = currentBrowsingPath;
+					}
 					closeDirectoryBrowser();
 				}
 			}
 
 			// Close modal when clicking outside
-			window.onclick = function(event) {
-				const modal = document.getElementById('directoryModal');
+			window.onclick = function (event) {
+				const modal = document.getElementById("directoryModal");
 				if (event.target === modal) {
 					closeDirectoryBrowser();
 				}
-			}
+			};
 		</script>
 	</body>
 </html>

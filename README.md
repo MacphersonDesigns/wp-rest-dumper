@@ -17,6 +17,40 @@ A powerful Python tool for extracting content from WordPress sites via the REST 
 - 📝 **Verbose Logging**: Detailed output for debugging and monitoring
 - ⚡ **Real-time Progress**: Live updates in both CLI and web interface
 
+## 🧠 Advanced Content Intelligence (NEW!)
+
+WP Dumper now includes powerful content analysis and reporting capabilities:
+
+### Content Analytics Dashboard
+
+- **Content Distribution Analysis**: Visualize page types, word counts, content categories
+- **Content Quality Metrics**: Analyze content depth, readability, and structure
+- **Interactive Charts**: Beautiful charts showing content patterns and trends
+- **Export Reports**: Professional HTML reports for stakeholders
+
+### SEO Analysis Engine
+
+- **Technical SEO Audit**: Title tags, meta descriptions, heading structure analysis
+- **Content Optimization**: SEO scoring with specific recommendations
+- **Keyword Analysis**: Density analysis and optimization suggestions
+- **Performance Scoring**: Overall SEO health score with actionable insights
+
+### Master Intelligence Dashboard
+
+- **Unified View**: Combines content analytics + SEO analysis in one comprehensive report
+- **Executive Summary**: High-level insights for decision makers
+- **Action Items**: Prioritized list of improvements and optimizations
+- **Professional Presentation**: Clean, branded reports suitable for client delivery
+
+### Smart Content Processing
+
+- **Theme Builder Cleanup**: Automatically strips Visual Composer, Elementor, Divi shortcodes
+- **Business Data Mining**: Extracts structured data (addresses, phones, emails, locations)
+- **Markdown Export**: Clean, documentation-ready markdown output
+- **Dual Output**: Both raw data and human-readable processed content
+
+All analysis features are available through both the web interface and can be run independently on existing scrape data!
+
 ## Installation
 
 ### 🐳 Docker (Recommended - Zero Setup)
@@ -198,6 +232,79 @@ wp_dump/
 	]
 }
 ```
+
+## 📊 Using the Analytics Features
+
+The analytics features can be used through the web interface or as standalone command-line tools.
+
+### Web Interface Analytics
+
+After running a scrape in the web interface, you'll see new analytics controls:
+
+1. **✅ Include Content Analytics** - Generates comprehensive content analysis dashboard
+2. **✅ Include SEO Analysis** - Creates detailed SEO audit report
+3. **✅ Generate Master Dashboard** - Combines all analyses into unified executive report
+
+You can also run analytics separately on existing scrape data:
+
+- **📊 Run Analytics Only** - Generate analytics report from existing data
+- **🎯 Run SEO Analysis** - Generate SEO report from existing data
+- **🌟 Open Dashboard** - View the master dashboard in your browser
+
+### Command Line Analytics
+
+Run analytics on existing scrape data:
+
+```bash
+# Generate content analytics dashboard
+python content_analytics.py path/to/site-data.json output/analytics_dashboard.html
+
+# Generate SEO analysis report
+python seo_analyzer.py path/to/site-data.json output/seo_report.html
+
+# Generate complete master dashboard (includes everything)
+python complete_analyzer.py path/to/site-data.json output/master_dashboard.html
+```
+
+### Analytics Output Files
+
+Each analytics run generates professional HTML reports:
+
+```
+Site-Name/
+├── index.json                          # Original scraped data
+├── content_analytics_dashboard.html    # Content analysis with charts
+├── seo_analysis_report.html           # SEO audit and recommendations
+├── master_dashboard.html              # Unified executive dashboard
+├── site-data-pretty.txt              # Cleaned content (no shortcodes)
+├── site-data-markdown.md             # Markdown export
+└── business-data.json                # Extracted business information
+```
+
+### Report Features
+
+**Content Analytics Dashboard**:
+
+- Content type distribution charts
+- Word count analysis and trends
+- Content quality metrics
+- Category and tag analysis
+- Interactive visualizations
+
+**SEO Analysis Report**:
+
+- Technical SEO scoring (0-100)
+- Title tag and meta description analysis
+- Heading structure audit
+- Keyword density analysis
+- Specific optimization recommendations
+
+**Master Dashboard**:
+
+- Executive summary with key insights
+- Combined content + SEO health score
+- Prioritized action items
+- Professional presentation suitable for stakeholders
 
 ## Usage Examples
 

@@ -18,6 +18,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application files
 COPY wp_rest_dump.py .
 COPY wp_dumper_web_gui.py .
+COPY content_analytics.py .
+COPY seo_analyzer.py .
+COPY complete_analyzer.py .
 COPY templates/ ./templates/
 
 # Create directory for output (will be mounted as volume)
